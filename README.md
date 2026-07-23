@@ -55,9 +55,9 @@ Built in eight stages over roughly nine weeks. See ['docs'/PLAN.md](docs/PLAN.md
 **Testing:** pytest (planned)
 **Formating:** ruff, black
 
-## Liscence
+## Licence
 
-MIT - see [LISCENCE](LISCENCE)
+MIT - see [LICENCE](LICENCE)
 
 
 ## About
