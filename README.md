@@ -34,7 +34,7 @@ Raw logs -> parser -> Signature Clusterer -> Claude API -> Structured report ( -
 
 THe clustering layer exists specifically to reduce LLM token usage on repetitive event streams - a design decision driven by both cost and signal-to-noise concerns. Full architecture notes live in ['docs'/ARCHITECTURE.md](docs/ARCHITECTURE.md) (coming in Stage 7).
 
-##Roadmap
+## Roadmap
 
 Built in eight stages over roughly nine weeks. See ['docs'/PLAN.md](docs/PLAN.md) for the full plan.
 
@@ -48,19 +48,19 @@ Built in eight stages over roughly nine weeks. See ['docs'/PLAN.md](docs/PLAN.md
 - [ ] **Stage 7** — Documentation and polish
 - [ ] **Stage 8** — Ship and promote
 
-##Tech Stack
+## Tech Stack
 
 **Language:** Python 3.11+
 **LLM:** Anthropic Claude Sonnet
 **Testing:** pytest (planned)
 **Formating:** ruff, black
 
-##Liscence
+## Liscence
 
 MIT - see [LISCENCE](LISCENCE)
 
 
-##About
+## About
 
 Built by Domenic (Dom) Jernigan[https://github.com/Domenicj1] as a portfolio project exploring the intersection of AI and security operations. Feedback welcome via GitHub issues.
 
