@@ -32,11 +32,11 @@ To keep scope honest, Sentinel Triage explicitly is **not**:
 
 Raw logs -> parser -> Signature Clusterer -> Claude API -> Structured report ( -> Slack / GitHub / stdin)
 
-THe clustering layer exists specifically to reduce LLM token usage on repetitive event streams - a design decision driven by both cost and signal-to-noise concerns. Full architecture notes live in ['docs'/ARCHITECTURE.md](docs/ARCHITECTURE.md) (coming in Stage 7).
+THe clustering layer exists specifically to reduce LLM token usage on repetitive event streams - a design decision driven by both cost and signal-to-noise concerns. Full architecture notes live in ['docs/ARCHITECTURE.md'](docs/ARCHITECTURE.md) (coming in Stage 7).
 
 ## Roadmap
 
-Built in eight stages over roughly nine weeks. See ['docs'/PLAN.md](docs/PLAN.md) for the full plan.
+Built in eight stages over roughly nine weeks. See ['docs/PLAN.md'](docs/PLAN.md) for the full plan.
 
 - [x] **Stage 0** — Foundation (repo, README, docs scaffolding)
 - [ ] **Stage 1** — Synthetic log generator
