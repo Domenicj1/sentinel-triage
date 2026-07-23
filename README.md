@@ -30,9 +30,9 @@ To keep scope honest, Sentinel Triage explicitly is **not**:
 
 ## Planned Architecture
 
-Raw logs -> parser -> Signature Clusterer -> Claude API -> Structured report ( -> Slack / GitHub / stdin)
+Raw logs -> parser -> Signature Clusterer -> Claude API -> Structured report ( -> Slack / GitHub / stdout)
 
-THe clustering layer exists specifically to reduce LLM token usage on repetitive event streams - a design decision driven by both cost and signal-to-noise concerns. Full architecture notes live in ['docs/ARCHITECTURE.md'](docs/ARCHITECTURE.md) (coming in Stage 7).
+The clustering layer exists specifically to reduce LLM token usage on repetitive event streams - a design decision driven by both cost and signal-to-noise concerns. Full architecture notes live in ['docs/ARCHITECTURE.md'](docs/ARCHITECTURE.md) (coming in Stage 7).
 
 ## Roadmap
 
@@ -53,7 +53,7 @@ Built in eight stages over roughly nine weeks. See ['docs/PLAN.md'](docs/PLAN.md
 **Language:** Python 3.11+
 **LLM:** Anthropic Claude Sonnet
 **Testing:** pytest (planned)
-**Formating:** ruff, black
+**Formatting:** ruff, black
 
 ## Licence
 
