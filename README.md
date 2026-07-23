@@ -62,7 +62,7 @@ MIT - see [LICENCE](LICENCE)
 
 ## About
 
-Built by Domenic (Dom) Jernigan[https://github.com/Domenicj1] as a portfolio project exploring the intersection of AI and security operations. Feedback welcome via GitHub issues.
+Built by [Domenic (Dom) Jernigan](https://github.com/Domenicj1) as a portfolio project exploring the intersection of AI and security operations. Feedback welcome via GitHub issues.
 
 
 
