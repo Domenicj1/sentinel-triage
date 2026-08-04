@@ -12,7 +12,7 @@
 
 Sentinel Triage is a command-line tool that helps security operations analysts cut through log noise during incident response. It ingests raw event logs (auth logs, network logs, application logs), clusters similar events using signature-based hashing, and uses Claude (Anthropic's LLM) to produce structured triage reports — threat classification, MITRE ATT&CK technique mapping, severity ratings, and suggested analyst next steps.
 
-The goal is a tool a tier-1 SOC analyst could actually use to accelerate the "first five minutes" of an alert investigation.
+The end goal is a tool that a tier-1 SOC analyst could actually use to accelerate the "first five minutes" of an alert investigation.
 
 ## Motivation
 
