@@ -4,12 +4,11 @@ def fmt_ts(dt): # Format a datetime object into a syslog-style timestamp (fmt_ts
 
     """Turn a datetime object into a syslog-style timestamp like 'Jul 25 09:14:32'."""
 
-
-
     # the `%b` code in strftime means "abbreviated month name"
     # instead of using the `%e` code in strftime, we manually format the day with space-padding using `{dt.day:2d}` in an f-string 
     return f"{dt.strftime('%b')} {dt.day:2d} {dt.strftime('%H:%M:%S')}"
 
+# Initialize a datetime object/instance variable from Python's datetime library module to test the function
 dt = datetime.now()
 
 print(fmt_ts(dt))
