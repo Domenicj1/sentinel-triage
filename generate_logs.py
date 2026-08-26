@@ -5,16 +5,19 @@ import random
 # Format Timestamp function
 def fmt_ts(dt): 
 
-    # Format a datetime object into a syslog-style timestamp like 'Jul 25 09:14:32' (fmt_ts  = format timestamp)
+    # Format a datetime object into a syslog-style timestamp like 'Jul 25 09:14:32' (fmt_ts  = "format timestamp")
     # the `%b` code in strftime means "abbreviated month name"
-    # instead of using the `%e` code in strftime, we manually format the day with space-padding using `{dt.day:2d}` in an f-string 
-    return f"{dt.strftime('%b')} {dt.day:2d} {dt.strftime('%H:%M:%S') }"
+    # instead of using the `%e` code in strftime, we manually format the day with space-padding using `{dt.day:2d}` in a f-string 
+    return f"{dt.strftime('%b')} {dt.day:2d} {dt.strftime('%H:%M:%S')}"
 
 
 # Message Builder functions
-def failed_password(user, ip, port):
+def failed_password(user, ip, port, invalid=False):
     # Given a `user`, `ip`, and `port`, returns a string formated like a standard sys-log failed password attempt
-    return f"Failed password for {user} from {ip} port {port} ssh2"
+    if invalid:
+        return f"Failed password for invalid user {user} from {ip} port {port} ssh2"
+    else: # default if invalid parameter is false
+        return f"Failed password for {user} from {ip} port {port} ssh2"
 
 def accepted_password(user, ip, port):
     # Given a `user`, `ip`, and `port`, returns a string formated like a standard sys-log accepted password attempt
@@ -41,6 +44,7 @@ def generate_benign(count):
     rand_users = ['dave', 'carol', 'domenicj', 'erin', 'brianna']
     rand_ips = ["10.0.0.12","10.0.0.14","10.0.1.5"]
 
+    # the defining signature of "benign" attack pattern is: one username + one IP address + one login attempt
     for i in range(0, count):
         user = random.choice(rand_users)
         ip = random.choice(rand_ips)
@@ -59,7 +63,7 @@ def generate_benign(count):
     return event_lines
 
 # brute_force scenario generator
-def generate_brute_force(count_intensity):
+def generate_brute_force(intesity_count):
     event_lines=[]
     timestamp = datetime.now()
 
@@ -68,14 +72,83 @@ def generate_brute_force(count_intensity):
 
     user = random.choice(rand_users)
     ip = random.choice(rand_ips)
-    
-    for i in range(0, count_intensity):
+
+    # the defining signature of "brute force" attack pattern is: one username + one IP address + many attempts
+    for i in range(0, intesity_count):
         timestamp += timedelta(seconds=random.randint(1,3))
         port = random.randint(40000,61000)
 
         event_lines.append((timestamp, failed_password(user, ip, port)))
 
     return event_lines
+
+# credential_stuffing scenario generator
+def generate_credential_stuffing(intesity_count):
+    event_lines=[]
+    timestamp = datetime.now()
+
+    rand_ips = ["134.4.5.82","235.6.113.55","181.1.0.75","162.8.90.47"]
+
+    legit_users=['domenicj', 'brianna', 'trey', 'emma', 'dave', 'carol', 'erin']
+    guessed_usernames=['admin', 'root', 'test','guest', 'oracle', 'postgres', 'ubuntu']
+
+    guessed_usernames = guessed_usernames + legit_users
+
+    ip1 = random.choice(rand_ips)
+    ip2 = random.choice(rand_ips)
+
+    ip = random.choice([ip1,ip2])
+
+    # the defining signature of the "credential stuffing" attack pattern is: many usernames + a couple IP adresses + many attempts
+    for i in range(0, intesity_count):
+        timestamp += timedelta(seconds=random.randint(1,4))
+
+        ip = random.choice([ip1,ip2])
+        port = random.randint(40000,61000)
+        random_user = random.choice(guessed_usernames)
+
+        if random_user in legit_users:
+            event_lines.append((timestamp, failed_password(random_user, ip, port)))
+        else:
+            event_lines.append((timestamp, invalid_user(random_user, ip, port)))
+            event_lines.append((timestamp, failed_password(random_user, ip, port, invalid=True)))
+
+    return event_lines
+
+# privilege_escalation scenario generator
+def generate_privilege_escalation():
+    event_lines=[]
+
+    timestamp=datetime.now()
+
+    legit_users=['domenicj', 'brianna', 'trey', 'emma', 'dave', 'carol', 'erin']
+    guessed_usernames=['admin', 'root', 'test','guest', 'oracle', 'postgres', 'ubuntu']
+    guessed_usernames = guessed_usernames + legit_users
+    rand_ips = ["127.4.3.82","203.0.113.45","198.51.100.23","102.4.3.94"]
+
+    random_user = random.choice(legit_users)
+
+    ip = random.choice(rand_ips)
+    random_port = random.randint(40000,61000)
+
+    event_lines.append((timestamp, accepted_password(random_user, ip, random_port)))
+    event_lines.append((timestamp, session_opened(random_user)))
+
+    suspicious_commands = [
+        "/bin/cat /etc/shadow",
+        "/usr/bin/vi /etc/sudoers",
+        "/bin/su -",
+        "/bin/chmod 777 /etc/passwd",
+        "/usr/bin/passwd root"
+    ]
+
+    for command in suspicious_commands:
+        timestamp += timedelta(seconds=random.randint(5, 30))
+        event_lines.append((timestamp, sudo_command(random_user, "pts/1", f"/home/{random_user}", "root", command)))
+
+    return event_lines
+
+
 
 
 
