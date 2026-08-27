@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime as dt, timedelta
 import argparse
 import random
 
@@ -39,15 +39,15 @@ def sudo_command(user, tty, pwd, target_user, command):
 # benign scenario generator
 def generate_benign(count):
     event_lines=[]
-    timestamp = datetime.now()
+    timestamp = dt.now()
 
     rand_users = ['dave', 'carol', 'domenicj', 'erin', 'brianna']
-    rand_ips = ["10.0.0.12","10.0.0.14","10.0.1.5"]
+    normal_ips = ["10.0.0.12","10.0.0.14","10.0.1.5"]
 
     # the defining signature of "benign" attack pattern is: one username + one IP address + one login attempt
     for i in range(0, count):
         user = random.choice(rand_users)
-        ip = random.choice(rand_ips)
+        ip = random.choice(normal_ips)
         port = random.randint(40000, 61000)
 
         timestamp += timedelta(seconds=random.randint(5, 500))
@@ -65,7 +65,7 @@ def generate_benign(count):
 # brute_force scenario generator
 def generate_brute_force(intesity_count):
     event_lines=[]
-    timestamp = datetime.now()
+    timestamp = dt.now()
 
     rand_users = ['domenicj','brianna','trey','emma', 'dave', 'carol','erin']
     rand_ips = ["127.4.3.82","203.0.113.45","198.51.100.23","102.4.3.94"]
@@ -85,7 +85,7 @@ def generate_brute_force(intesity_count):
 # credential_stuffing scenario generator
 def generate_credential_stuffing(intesity_count):
     event_lines=[]
-    timestamp = datetime.now()
+    timestamp = dt.now()
 
     rand_ips = ["134.4.5.82","235.6.113.55","181.1.0.75","162.8.90.47"]
 
@@ -119,7 +119,7 @@ def generate_credential_stuffing(intesity_count):
 def generate_privilege_escalation():
     event_lines=[]
 
-    timestamp=datetime.now()
+    timestamp=dt.now()
 
     legit_users=['domenicj', 'brianna', 'trey', 'emma', 'dave', 'carol', 'erin']
     guessed_usernames=['admin', 'root', 'test','guest', 'oracle', 'postgres', 'ubuntu']
@@ -148,7 +148,33 @@ def generate_privilege_escalation():
 
     return event_lines
 
+# off_hours scenario generator
+def generate_off_hours():
+    event_lines=[]
+    timestamp = dt.now()
+    legit_users = ['domenicj', 'brianna', 'trey', 'emma', 'dave', 'carol', 'erin']
+    rand_ips = ["127.4.3.82","203.0.113.45","198.51.100.23","102.4.3.94","134.4.5.82","235.6.113.55","181.1.0.75","162.8.90.47"]
 
+    night = timestamp.replace(
+        hour=random.choice([1,2,3,4]), 
+        minute=random.randint(0,59),
+        second=random.randint(0,59)
+    )
+
+    random_user = random.choice(legit_users)
+
+    random_ip = random.choice(rand_ips)
+
+    random_port = random.randint(40000, 61000)
+    
+    event_lines.append((night, accepted_password(random_user, random_ip, random_port)))
+    event_lines.append((night, session_opened(random_user)))
+
+    night += timedelta(minutes=random.randint(2,15))
+
+    event_lines.append((night, session_closed(random_user)))
+
+    return event_lines
 
 
 
