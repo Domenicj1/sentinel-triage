@@ -202,7 +202,8 @@ def generate_lateral_movement():
 
     return event_lines
 
-
+# NEXT: wire scenario generators into main() with argparse dispatch
+# NEXT: implement interleave_and_write() to mix benign traffic with attack bursts
 
 def main():
     parser = argparse.ArgumentParser(description="the parser for the command-line args when a SOC analyst uses this tool to triage auth logs")
