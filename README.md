@@ -39,7 +39,7 @@ The clustering layer exists specifically to reduce LLM token usage on repetitive
 Built in eight stages over roughly nine weeks. See [docs/PLAN.md](docs/PLAN.md) for the full plan.
 
 - [x] **Stage 0** — Foundation (repo, README, docs scaffolding)
-- [ ] **Stage 1** — Synthetic log generator
+- [x] **Stage 1** — Synthetic log generator
 - [ ] **Stage 2** — Parser + signature clusterer
 - [ ] **Stage 3** — Claude integration and prompt engineering
 - [ ] **Stage 4** — CLI wrapper and output formatting
