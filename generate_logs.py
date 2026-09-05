@@ -4,6 +4,7 @@ import random
 
 
 legit_users=['domenicj', 'brianna', 'trey', 'emma', 'dave', 'carol', 'erin']
+HOSTNAME="web01"
 
 # Format Timestamp function
 def fmt_ts(dt): 
@@ -56,12 +57,12 @@ def generate_benign(count):
         timestamp += timedelta(seconds=random.randint(5, 500))
 
 
-        event_lines.append((timestamp, accepted_password(user, ip, port)))
-        event_lines.append((timestamp, session_opened(user)))
+        event_lines.append((timestamp, "sshd", accepted_password(user, ip, port)))
+        event_lines.append((timestamp, "sshd", session_opened(user)))
 
         timestamp += timedelta(seconds=random.randint(30, 600))
 
-        event_lines.append((timestamp, session_closed(user))) 
+        event_lines.append((timestamp, "sshd", session_closed(user))) 
 
     return event_lines
 
@@ -80,7 +81,7 @@ def generate_brute_force(intesity_count):
         timestamp += timedelta(seconds=random.randint(1,3))
         port = random.randint(40000,61000)
 
-        event_lines.append((timestamp, failed_password(user, ip, port)))
+        event_lines.append((timestamp, "sshd", failed_password(user, ip, port)))
 
     return event_lines
 
@@ -106,10 +107,10 @@ def generate_credential_stuffing(intesity_count):
         random_user = random.choice(guessed_usernames)
 
         if random_user in legit_users:
-            event_lines.append((timestamp, failed_password(random_user, random_ip, random_port)))
+            event_lines.append((timestamp, "sshd", failed_password(random_user, random_ip, random_port)))
         else:
-            event_lines.append((timestamp, invalid_user(random_user, random_ip, random_port)))
-            event_lines.append((timestamp, failed_password(random_user, random_ip, random_port, invalid=True)))
+            event_lines.append((timestamp, "sshd", invalid_user(random_user, random_ip, random_port)))
+            event_lines.append((timestamp, "sshd", failed_password(random_user, random_ip, random_port, invalid=True)))
 
     return event_lines
 
@@ -130,8 +131,8 @@ def generate_privilege_escalation():
 
     random_port = random.randint(40000,61000)
 
-    event_lines.append((timestamp, accepted_password(random_user, random_ip, random_port)))
-    event_lines.append((timestamp, session_opened(random_user)))
+    event_lines.append((timestamp, "sshd", accepted_password(random_user, random_ip, random_port)))
+    event_lines.append((timestamp, "sshd", session_opened(random_user)))
 
     suspicious_commands = [
         "/bin/cat /etc/shadow",
@@ -143,7 +144,7 @@ def generate_privilege_escalation():
 
     for command in suspicious_commands:
         timestamp += timedelta(seconds=random.randint(5, 30))
-        event_lines.append((timestamp, sudo_command(random_user, "pts/1", f"/home/{random_user}", "root", command)))
+        event_lines.append((timestamp, "sudo", sudo_command(random_user, "pts/1", f"/home/{random_user}", "root", command)))
 
     return event_lines
 
@@ -166,12 +167,12 @@ def generate_off_hours():
 
     random_port = random.randint(40000, 61000)
     
-    event_lines.append((night, accepted_password(random_user, random_ip, random_port)))
-    event_lines.append((night, session_opened(random_user)))
+    event_lines.append((night, "sshd", accepted_password(random_user, random_ip, random_port)))
+    event_lines.append((night, "sshd", session_opened(random_user)))
 
     night += timedelta(minutes=random.randint(2,15))
 
-    event_lines.append((night, session_closed(random_user)))
+    event_lines.append((night, "sshd", session_closed(random_user)))
 
     return event_lines
 
@@ -191,22 +192,62 @@ def generate_lateral_movement():
     for ip in hop_ips:
         random_port = random.randint(40000, 61000)
 
-        event_lines.append((timestamp, accepted_password(random_user, ip, random_port)))
-        event_lines.append((timestamp, session_opened(random_user)))
+        event_lines.append((timestamp, "sshd", accepted_password(random_user, ip, random_port)))
+        event_lines.append((timestamp, "sshd", session_opened(random_user)))
 
         timestamp += timedelta(seconds=random.randint(10,60))
 
-        event_lines.append((timestamp, session_closed(random_user)))
+        event_lines.append((timestamp, "sshd", session_closed(random_user)))
 
         timestamp += timedelta(seconds=random.randint(5,20))
 
     return event_lines
 
-# NEXT: wire scenario generators into main() with argparse dispatch
+
 # NEXT: implement interleave_and_write() to mix benign traffic with attack bursts
+
+def write_fixtures(events, filepath):
+    with open(filepath, 'w') as f:
+        for timestamp, service, message in events:
+            random_pid = random.randint(1000, 99999)
+            f.write(f"{fmt_ts(timestamp)} {HOSTNAME} {service}[{random_pid}]: {message}\n")
+
+def build_fixture(scenario, total_lines):
+    if scenario == "benign":
+        return generate_benign(total_lines // 3)
+    
+    elif scenario == "brute_force":
+        background = generate_benign(int(0.95 * (total_lines // 3)))
+        attack_lines = generate_brute_force(max( 10, int(0.05 * total_lines)))
+            
+    elif scenario == "credential_stuffing":
+        background = generate_benign(int(0.95 * (total_lines // 3)))
+        attack_lines = generate_credential_stuffing(max(10, int(0.05 * total_lines)))
+            
+    elif scenario == "privilege_escalation":
+        background = generate_benign((total_lines // 3))
+        attack_lines = generate_privilege_escalation()
+            
+    elif scenario == "off_hours":
+        background = generate_benign((total_lines // 3))
+        attack_lines = generate_off_hours()
+        
+    elif scenario == "lateral_movement":
+        background = generate_benign((total_lines // 3))
+        attack_lines = generate_lateral_movement()
+
+    elif scenario == "mixed":
+        background = generate_benign((total_lines // 3))
+        attack_lines = generate_brute_force(max(10, int(0.02 * total_lines))) + generate_credential_stuffing(max(10, int(0.02 * total_lines))) + generate_privilege_escalation() + generate_off_hours() + generate_lateral_movement()
+
+    events = background + attack_lines
+    events.sort(key=lambda event: event[0])
+    return events
+            
 
 def main():
     parser = argparse.ArgumentParser(description="the parser for the command-line args when a SOC analyst uses this tool to triage auth logs")
+     
     parser.add_argument(
         "--scenario", 
         required=True,
@@ -232,9 +273,20 @@ def main():
         type=int,
         default=None
     )
-    args = parser.parse_args()
-    print(args)
 
+    args = parser.parse_args()
+    random.seed(args.seed)
+
+
+
+
+    print(args)
+        
+
+
+    events = build_fixture(args.scenario, args.lines)
+
+    write_fixtures(events, args.output)
 
 if __name__ == "__main__":
     main()
