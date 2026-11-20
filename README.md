@@ -1,5 +1,7 @@
 # Sentinel Triage
 
+![CI](https://github.com/Domenicj1/sentinel-triage/actions/workflows/ci.yml/badge.svggit)
+
 **An AI-powered SOC analyst assistant that clusters security event logs, classifies threats, and generates analyst-ready incident summaries with MITRE ATT&CK technique mapping.**
 
 ![Status](https://img.shields.io/badge/status-in%20development-yellow)
