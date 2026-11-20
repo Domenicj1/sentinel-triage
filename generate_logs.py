@@ -1,7 +1,7 @@
-from datetime import datetime as dt, timedelta
 import argparse
 import random
-
+from datetime import datetime as dt
+from datetime import timedelta
 
 legit_users = ["domenicj", "brianna", "trey", "emma", "dave", "carol", "erin"]
 HOSTNAME = "web01"
@@ -56,7 +56,7 @@ def generate_benign(count):
     normal_ips = ["10.0.0.12", "10.0.0.14", "10.0.1.5"]
 
     # the defining signature of "benign" attack pattern is: one username + one IP address + one login attempt
-    for i in range(0, count):
+    for i in range(count):
         user = random.choice(legit_users)
         ip = random.choice(normal_ips)
         port = random.randint(40000, 61000)
@@ -84,7 +84,7 @@ def generate_brute_force(intesity_count):
     ip = random.choice(irreg_ips1)
 
     # the defining signature of "brute force" attack pattern is: one username + one IP address + many attempts
-    for i in range(0, intesity_count):
+    for i in range(intesity_count):
         timestamp += timedelta(seconds=random.randint(1, 3))
         port = random.randint(40000, 61000)
 
@@ -115,7 +115,7 @@ def generate_credential_stuffing(intesity_count):
     ip1, ip2 = random.sample(irreg_ips2, k=2)
 
     # the defining signature of the "credential stuffing" attack pattern is: many usernames + a couple IP adresses + many attempts
-    for i in range(0, intesity_count):
+    for i in range(intesity_count):
         timestamp += timedelta(seconds=random.randint(1, 4))
 
         random_ip = random.choice([ip1, ip2])
@@ -298,19 +298,19 @@ def build_fixture(scenario, total_lines):
         attack_lines = generate_credential_stuffing(max(10, int(0.05 * total_lines)))
 
     elif scenario == "privilege_escalation":
-        background = generate_benign((total_lines // 3))
+        background = generate_benign(total_lines // 3)
         attack_lines = generate_privilege_escalation()
 
     elif scenario == "off_hours":
-        background = generate_benign((total_lines // 3))
+        background = generate_benign(total_lines // 3)
         attack_lines = generate_off_hours()
 
     elif scenario == "lateral_movement":
-        background = generate_benign((total_lines // 3))
+        background = generate_benign(total_lines // 3)
         attack_lines = generate_lateral_movement()
 
     elif scenario == "mixed":
-        background = generate_benign((total_lines // 3))
+        background = generate_benign(total_lines // 3)
         attack_lines = (
             generate_brute_force(max(10, int(0.02 * total_lines)))
             + generate_credential_stuffing(max(10, int(0.02 * total_lines)))
