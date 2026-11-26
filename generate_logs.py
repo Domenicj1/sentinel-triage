@@ -74,7 +74,7 @@ def generate_benign(count):
 
 
 # brute_force scenario generator
-def generate_brute_force(intesity_count):
+def generate_brute_force(intensity_count):
     event_lines = []
     timestamp = dt.now()
 
@@ -84,7 +84,7 @@ def generate_brute_force(intesity_count):
     ip = random.choice(irreg_ips1)
 
     # the defining signature of "brute force" attack pattern is: one username + one IP address + many attempts
-    for i in range(intesity_count):
+    for i in range(intensity_count):
         timestamp += timedelta(seconds=random.randint(1, 3))
         port = random.randint(40000, 61000)
 
@@ -94,7 +94,7 @@ def generate_brute_force(intesity_count):
 
 
 # credential_stuffing scenario generator
-def generate_credential_stuffing(intesity_count):
+def generate_credential_stuffing(intensity_count):
     event_lines = []
     timestamp = dt.now()
 
@@ -115,7 +115,7 @@ def generate_credential_stuffing(intesity_count):
     ip1, ip2 = random.sample(irreg_ips2, k=2)
 
     # the defining signature of the "credential stuffing" attack pattern is: many usernames + a couple IP adresses + many attempts
-    for i in range(intesity_count):
+    for i in range(intensity_count):
         timestamp += timedelta(seconds=random.randint(1, 4))
 
         random_ip = random.choice([ip1, ip2])
@@ -273,9 +273,6 @@ def generate_lateral_movement():
     return event_lines
 
 
-# NEXT: implement interleave_and_write() to mix benign traffic with attack bursts
-
-
 def write_fixtures(events, filepath):
     with open(filepath, "w") as f:
         for timestamp, service, message in events:
@@ -283,6 +280,15 @@ def write_fixtures(events, filepath):
             f.write(
                 f"{fmt_ts(timestamp)} {HOSTNAME} {service}[{random_pid}]: {message}\n"
             )
+
+
+"""
+    I intentionally designed the different scenario generator functions to have asymetric intensities, to best replicate a
+    realistic log file containing different signatures of cyberattacks. So my eval set deliberately models real-world 
+    event-volume asymmetry. Brute force has high recall; privilege escalation stresses the model.Attack volume varies by scenario 
+    to reflect real-world event footprints: brute force and credential stuffing scale with observation window; privilege escalation, 
+    off-hours, and lateral movement produce fixed small bursts.
+"""
 
 
 def build_fixture(scenario, total_lines):
@@ -318,6 +324,25 @@ def build_fixture(scenario, total_lines):
             + generate_off_hours()
             + generate_lateral_movement()
         )
+
+    # Embed the attack burst inside the benign timeline so it reads as a realistic
+    # needle-in-haystack rather than a wall of lines at the top of the file.
+    if scenario not in ("benign", "off_hours") and background and attack_lines:
+        # Step 1: find the time range of the benign background
+        benign_start = background[0][0]
+        benign_end = background[-1][0]
+        benign_time_range = benign_end - benign_start
+
+        # Step 2: pick a random anchor point inside the middle 60% of that range
+        random_fraction = random.uniform(0.2, 0.8)
+        anchor_point = benign_start + (benign_time_range * random_fraction)
+
+        # Step 3: compute the shift amount
+        attack_start = attack_lines[0][0]
+        shift = anchor_point - attack_start
+
+        # Step 4: apply the shift to every attack event
+        attack_lines = [(ts + shift, service, msg) for ts, service, msg in attack_lines]
 
     events = background + attack_lines
     events.sort(key=lambda event: event[0])
@@ -361,12 +386,12 @@ def main():
     args = parser.parse_args()
     random.seed(args.seed)
 
-    print(args)
-
     events = build_fixture(args.scenario, args.lines)
 
     write_fixtures(events, args.output)
 
 
+# This conditional block ("gaurd") allows this file: generate_logs.py, to work as both a python script AND an importable module
+# since Python will set "__name__" = __main__ if you run it by itself but "generate_logs.py" if imported
 if __name__ == "__main__":
     main()
