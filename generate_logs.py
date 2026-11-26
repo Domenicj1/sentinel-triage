@@ -343,6 +343,20 @@ def build_fixture(scenario, total_lines):
 
         # Step 4: apply the shift to every attack event
         attack_lines = [(ts + shift, service, msg) for ts, service, msg in attack_lines]
+    elif scenario == "off_hours" and background and attack_lines:
+        benign_start = background[0][0]
+        benign_end = background[-1][0]
+        day_span = (
+            benign_end.date() - benign_start.date()
+        ).days  # subtracting two datetime objects gives a timedelta, its days attribute is just an int
+        random_day_offset = random.randint(0, day_span)
+        target_date = benign_start.date() + timedelta(days=random_day_offset)
+        attack_lines = [
+            (dt.combine(target_date, ts.time()), service, msg)
+            for ts, service, msg in attack_lines
+        ]  # list comprehension
+
+        # TODO: handle off_hours events in mixed scenario separately
 
     events = background + attack_lines
     events.sort(key=lambda event: event[0])
